@@ -1,0 +1,114 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --color-bg-base: #0F0F10;
+    --color-bg-card: #18181B;
+    --color-bg-elevated: #1C1C1F;
+    --color-border-subtle: #27272A;
+    --color-border-hover: #3F3F46;
+    --color-text-primary: #FAFAFA;
+    --color-text-secondary: #A1A1AA;
+    --color-text-muted: #71717A;
+    --color-accent: #6366F1;
+    --color-accent-hover: #4F46E5;
+    --color-status-todo: #A1A1AA;
+    --color-status-in-progress: #3B82F6;
+    --color-status-in-review: #F59E0B;
+    --color-status-done: #10B981;
+    --color-priority-high: #EF4444;
+    --color-priority-normal: #F59E0B;
+    --color-priority-low: #6B7280;
+  }
+
+  * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+
+  html {
+    font-family: 'Inter', ui-sans-serif, system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  body {
+    background-color: var(--color-bg-base);
+    color: var(--color-text-primary);
+    min-height: 100vh;
+  }
+
+  /* Custom scrollbar */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: var(--color-border-hover);
+    border-radius: 3px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--color-text-muted);
+  }
+}
+
+@layer components {
+  .skeleton-shimmer {
+    background: linear-gradient(
+      90deg,
+      var(--color-bg-card) 25%,
+      var(--color-bg-elevated) 50%,
+      var(--color-bg-card) 75%
+    );
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+  }
+
+  .slide-over {
+    transition: transform 200ms ease, opacity 200ms ease;
+  }
+
+  .slide-over-enter {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+
+  .slide-over-enter-active {
+    transform: translateX(0);
+    opacity: 1;
+  }
+
+  .slide-over-exit {
+    transform: translateX(0);
+    opacity: 1;
+  }
+
+  .slide-over-exit-active {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
