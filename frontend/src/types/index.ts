@@ -132,9 +132,9 @@ export interface UpdateTaskInput {
 }
 
 export interface ReorderTaskInput {
-  task_id: string
-  new_status: TaskStatus
-  new_position: number
+  id: string
+  status: TaskStatus
+  position: number
 }
 
 export interface CreateTeamMemberInput {

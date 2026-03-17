@@ -2,79 +2,176 @@ package handlers
 
 import (
 	"encoding/json"
+	"errors"
 	"net/http"
+	"strings"
 
 	"github.com/go-chi/chi/v5"
-	supa "github.com/supabase-community/supabase-go"
+
+	"task-board/backend/internal/middleware"
+	"task-board/backend/internal/models"
+	"task-board/backend/internal/services"
 )
 
 // TaskHandler handles all task-related HTTP requests.
 type TaskHandler struct {
-	db *supa.Client
+	service *services.TaskService
 }
 
-// NewTaskHandler creates a TaskHandler with the given Supabase client.
-func NewTaskHandler(db *supa.Client) *TaskHandler {
-	return &TaskHandler{db: db}
+// NewTaskHandler creates a TaskHandler backed by the given service.
+func NewTaskHandler(service *services.TaskService) *TaskHandler {
+	return &TaskHandler{service: service}
 }
 
-// Routes wires the task routes onto r under the caller's mount point.
-// Expected mount: /api/v1
-func (h *TaskHandler) Routes(r chi.Router) {
-	r.Get("/tasks", h.List)
-	r.Post("/tasks", h.Create)
-	r.Patch("/tasks/reorder", h.Reorder) // must be before /{id}
-	r.Patch("/tasks/{id}", h.Update)
-	r.Delete("/tasks/{id}", h.Delete)
-}
+// Routes is unused — task routes are wired directly in main.go to avoid
+// chi sub-router conflicts between /{id} flat routes and /{taskId} nested routes.
 
 // List handles GET /api/v1/tasks
-// Supports optional query params: status, priority, assignee_id, label_id, search
 func (h *TaskHandler) List(w http.ResponseWriter, r *http.Request) {
-	writeJSON(w, http.StatusOK, map[string]any{
-		"tasks": []any{},
-	})
+	token := middleware.GetToken(r.Context())
+
+	filters := models.TaskFilters{
+		Status:     r.URL.Query().Get("status"),
+		Priority:   r.URL.Query().Get("priority"),
+		Search:     r.URL.Query().Get("search"),
+		AssigneeID: r.URL.Query().Get("assignee_id"),
+		LabelID:    r.URL.Query().Get("label_id"),
+	}
+
+	tasks, err := h.service.ListTasks(r.Context(), token, filters)
+	if err != nil {
+		writeError(w, http.StatusInternalServerError, "INTERNAL_ERROR", err.Error())
+		return
+	}
+	writeJSON(w, http.StatusOK, map[string]interface{}{"tasks": tasks})
 }
 
 // Create handles POST /api/v1/tasks
 func (h *TaskHandler) Create(w http.ResponseWriter, r *http.Request) {
-	var body map[string]any
-	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+	userID := middleware.GetUserID(r.Context())
+	token := middleware.GetToken(r.Context())
+
+	var input models.CreateTaskInput
+	if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
 		writeError(w, http.StatusBadRequest, "VALIDATION_ERROR", "invalid request body")
 		return
 	}
-	writeJSON(w, http.StatusCreated, map[string]any{
-		"task": body,
-	})
+
+	input.Title = strings.TrimSpace(input.Title)
+	if input.Title == "" {
+		writeError(w, http.StatusBadRequest, "VALIDATION_ERROR", "title is required")
+		return
+	}
+	if len(input.Title) > 500 {
+		writeError(w, http.StatusBadRequest, "VALIDATION_ERROR", "title must be at most 500 characters")
+		return
+	}
+
+	if input.Status == "" {
+		input.Status = models.TaskStatusTodo
+	}
+	if input.Priority == "" {
+		input.Priority = models.TaskPriorityNormal
+	}
+
+	switch input.Status {
+	case models.TaskStatusTodo, models.TaskStatusInProgress, models.TaskStatusInReview, models.TaskStatusDone:
+	default:
+		writeError(w, http.StatusBadRequest, "VALIDATION_ERROR", "invalid status")
+		return
+	}
+	switch input.Priority {
+	case models.TaskPriorityLow, models.TaskPriorityNormal, models.TaskPriorityHigh:
+	default:
+		writeError(w, http.StatusBadRequest, "VALIDATION_ERROR", "invalid priority")
+		return
+	}
+
+	task, err := h.service.CreateTask(r.Context(), userID, token, input)
+	if err != nil {
+		writeError(w, http.StatusInternalServerError, "INTERNAL_ERROR", err.Error())
+		return
+	}
+	writeJSON(w, http.StatusCreated, map[string]interface{}{"task": task})
 }
 
-// Update handles PATCH /api/v1/tasks/{id}
+// Update handles PATCH /api/v1/tasks/{taskId}
 func (h *TaskHandler) Update(w http.ResponseWriter, r *http.Request) {
-	id := chi.URLParam(r, "id")
-	var body map[string]any
-	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+	id := chi.URLParam(r, "taskId")
+	userID := middleware.GetUserID(r.Context())
+	token := middleware.GetToken(r.Context())
+
+	var input models.UpdateTaskInput
+	if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
 		writeError(w, http.StatusBadRequest, "VALIDATION_ERROR", "invalid request body")
 		return
 	}
-	body["id"] = id
-	writeJSON(w, http.StatusOK, map[string]any{
-		"task": body,
-	})
+
+	if input.Title != nil {
+		*input.Title = strings.TrimSpace(*input.Title)
+		if *input.Title == "" {
+			writeError(w, http.StatusBadRequest, "VALIDATION_ERROR", "title cannot be empty")
+			return
+		}
+	}
+	if input.Status != nil {
+		switch *input.Status {
+		case models.TaskStatusTodo, models.TaskStatusInProgress, models.TaskStatusInReview, models.TaskStatusDone:
+		default:
+			writeError(w, http.StatusBadRequest, "VALIDATION_ERROR", "invalid status")
+			return
+		}
+	}
+	if input.Priority != nil {
+		switch *input.Priority {
+		case models.TaskPriorityLow, models.TaskPriorityNormal, models.TaskPriorityHigh:
+		default:
+			writeError(w, http.StatusBadRequest, "VALIDATION_ERROR", "invalid priority")
+			return
+		}
+	}
+
+	task, err := h.service.UpdateTask(r.Context(), userID, token, id, input)
+	if err != nil {
+		if errors.Is(err, services.ErrNotFound) {
+			writeError(w, http.StatusNotFound, "NOT_FOUND", "task not found")
+			return
+		}
+		writeError(w, http.StatusInternalServerError, "INTERNAL_ERROR", err.Error())
+		return
+	}
+	writeJSON(w, http.StatusOK, map[string]interface{}{"task": task})
 }
 
-// Delete handles DELETE /api/v1/tasks/{id}
+// Delete handles DELETE /api/v1/tasks/{taskId}
 func (h *TaskHandler) Delete(w http.ResponseWriter, r *http.Request) {
+	id := chi.URLParam(r, "taskId")
+	token := middleware.GetToken(r.Context())
+
+	if err := h.service.DeleteTask(r.Context(), token, id); err != nil {
+		writeError(w, http.StatusInternalServerError, "INTERNAL_ERROR", err.Error())
+		return
+	}
 	w.WriteHeader(http.StatusNoContent)
 }
 
 // Reorder handles PATCH /api/v1/tasks/reorder
 func (h *TaskHandler) Reorder(w http.ResponseWriter, r *http.Request) {
-	var body map[string]any
-	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+	token := middleware.GetToken(r.Context())
+
+	var input models.ReorderInput
+	if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
 		writeError(w, http.StatusBadRequest, "VALIDATION_ERROR", "invalid request body")
 		return
 	}
-	writeJSON(w, http.StatusOK, map[string]any{
-		"ok": true,
-	})
+	if len(input.Updates) == 0 {
+		writeJSON(w, http.StatusOK, map[string]interface{}{"ok": true})
+		return
+	}
+
+	if err := h.service.ReorderTasks(r.Context(), token, input.Updates); err != nil {
+		writeError(w, http.StatusInternalServerError, "INTERNAL_ERROR", err.Error())
+		return
+	}
+	writeJSON(w, http.StatusOK, map[string]interface{}{"ok": true})
 }

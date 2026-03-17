@@ -21,22 +21,27 @@ const (
 	TaskPriorityHigh   TaskPriority = "high"
 )
 
-// Task is the core domain model, matching the `tasks` table in Supabase.
+// Task is the core domain model returned by the API.
+// Uses a single assignee (AssigneeID + Assignee) and multiple labels (LabelIDs + Labels).
 type Task struct {
 	ID          string       `json:"id"`
 	Title       string       `json:"title"`
-	Description string       `json:"description"`
+	Description *string      `json:"description"`
 	Status      TaskStatus   `json:"status"`
 	Priority    TaskPriority `json:"priority"`
-	DueDate     *string      `json:"due_date"`   // ISO-8601 date string or null
+	DueDate     *string      `json:"due_date"`
 	Position    int          `json:"position"`
 	UserID      string       `json:"user_id"`
 	CreatedAt   time.Time    `json:"created_at"`
 	UpdatedAt   time.Time    `json:"updated_at"`
 
-	// Relations populated by JOIN queries / separate fetches.
-	Assignees []TeamMember `json:"assignees"`
-	Labels    []Label      `json:"labels"`
+	// Single assignee resolved from the task_assignees join table.
+	AssigneeID *string     `json:"assignee_id"`
+	Assignee   *TeamMember `json:"assignee,omitempty"`
+
+	// Labels resolved from the task_labels join table.
+	LabelIDs []string `json:"label_ids"`
+	Labels   []Label  `json:"labels,omitempty"`
 }
 
 // CreateTaskInput is the validated request body for POST /api/v1/tasks.
@@ -46,7 +51,7 @@ type CreateTaskInput struct {
 	Status      TaskStatus   `json:"status"`
 	Priority    TaskPriority `json:"priority"`
 	DueDate     *string      `json:"due_date"`
-	AssigneeIDs []string     `json:"assignee_ids"`
+	AssigneeID  *string      `json:"assignee_id"`
 	LabelIDs    []string     `json:"label_ids"`
 }
 
@@ -59,7 +64,7 @@ type UpdateTaskInput struct {
 	Priority    *TaskPriority `json:"priority"`
 	DueDate     *string       `json:"due_date"`
 	Position    *int          `json:"position"`
-	AssigneeIDs *[]string     `json:"assignee_ids"`
+	AssigneeID  *string       `json:"assignee_id"`
 	LabelIDs    *[]string     `json:"label_ids"`
 }
 
@@ -73,4 +78,13 @@ type ReorderItem struct {
 // ReorderInput is the request body for PATCH /api/v1/tasks/reorder.
 type ReorderInput struct {
 	Updates []ReorderItem `json:"updates"`
+}
+
+// TaskFilters holds optional query filters for listing tasks.
+type TaskFilters struct {
+	Status     string // comma-separated values accepted
+	Priority   string // comma-separated values accepted
+	Search     string
+	AssigneeID string
+	LabelID    string
 }

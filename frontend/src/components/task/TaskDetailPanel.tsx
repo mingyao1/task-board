@@ -69,10 +69,11 @@ export function TaskDetailPanel({ task, onClose, onUpdate, onDelete }: TaskDetai
     return () => document.removeEventListener('keydown', handler)
   }, [onClose])
 
-  // Reset edit state when task changes
+  // Reset panel state when task changes
   useEffect(() => {
     setIsEditing(false)
     setActiveTab('comments')
+    setIsDeleting(false)
   }, [task?.id])
 
   const handleUpdate = async (data: UpdateTaskInput) => {

@@ -82,9 +82,9 @@ export function useTasks(filters?: TaskFilters): UseTasksReturn {
       // Optimistic update
       setTasks((prev) => {
         const next = prev.map((task) => {
-          const update = updates.find((u) => u.task_id === task.id)
+          const update = updates.find((u) => u.id === task.id)
           if (!update) return task
-          return { ...task, status: update.new_status, position: update.new_position }
+          return { ...task, status: update.status, position: update.position }
         })
         return next.sort((a, b) => {
           if (a.status !== b.status) return 0

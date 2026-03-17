@@ -7,7 +7,6 @@ import {
   useSensors,
   type DragStartEvent,
   type DragEndEvent,
-  type DragOverEvent,
   closestCorners,
 } from '@dnd-kit/core'
 import { Column } from './Column'
@@ -27,7 +26,7 @@ interface BoardProps {
 }
 
 export function Board({ filters }: BoardProps) {
-  const { tasks, isLoading, error, createTask, updateTask, deleteTask, reorderTasks, setTasks } =
+  const { tasks, isLoading, error, createTask, updateTask, deleteTask, reorderTasks } =
     useTasks(filters)
   const { showError, showSuccess } = useToast()
 
@@ -68,38 +67,6 @@ export function Board({ filters }: BoardProps) {
     [tasks],
   )
 
-  const handleDragOver = useCallback(
-    (event: DragOverEvent) => {
-      const { active, over } = event
-      if (!over) return
-
-      const activeId = active.id as string
-      const overId = over.id as string
-
-      const activeTask = tasks.find((t) => t.id === activeId)
-      if (!activeTask) return
-
-      // Determine if dropping over a column or a card
-      const overIsColumn = STATUSES.includes(overId as TaskStatus)
-      const overTask = tasks.find((t) => t.id === overId)
-
-      const newStatus: TaskStatus = overIsColumn
-        ? (overId as TaskStatus)
-        : (overTask?.status ?? activeTask.status)
-
-      if (newStatus !== activeTask.status) {
-        // Move across columns
-        setTasks((prev) => {
-          const updated = prev.map((t) =>
-            t.id === activeId ? { ...t, status: newStatus } : t,
-          )
-          return updated
-        })
-      }
-    },
-    [tasks, setTasks],
-  )
-
   const handleDragEnd = useCallback(
     async (event: DragEndEvent) => {
       setActiveTask(null)
@@ -109,48 +76,39 @@ export function Board({ filters }: BoardProps) {
       const activeId = active.id as string
       const overId = over.id as string
 
-      if (activeId === overId) return
-
-      const activeTask = tasks.find((t) => t.id === activeId)
-      if (!activeTask) return
+      const draggedTask = tasks.find((t) => t.id === activeId)
+      if (!draggedTask) return
 
       const overIsColumn = STATUSES.includes(overId as TaskStatus)
-      const overTask = tasks.find((t) => t.id === overId)
+      const overTask = !overIsColumn ? tasks.find((t) => t.id === overId) : null
 
       const newStatus: TaskStatus = overIsColumn
         ? (overId as TaskStatus)
-        : (overTask?.status ?? activeTask.status)
+        : (overTask?.status ?? draggedTask.status)
 
-      const columnTasks = tasks
-        .filter((t) => t.status === newStatus)
+      // Compute position: sort the target column excluding the dragged task,
+      // then find where to insert.
+      const columnTasksWithout = tasks
+        .filter((t) => t.id !== activeId && t.status === newStatus)
         .sort((a, b) => a.position - b.position)
 
       let newPosition: number
-
-      if (overIsColumn) {
-        // Drop onto column — put at end
-        newPosition = columnTasks.length
-      } else if (overTask) {
-        // Drop onto a card
-        const overIndex = columnTasks.findIndex((t) => t.id === overId)
-        newPosition = overIndex
+      if (overIsColumn || !overTask) {
+        newPosition = columnTasksWithout.length
       } else {
-        newPosition = columnTasks.length
+        const overIndex = columnTasksWithout.findIndex((t) => t.id === overId)
+        newPosition = overIndex >= 0 ? overIndex : columnTasksWithout.length
       }
 
-      // Build reorder update
-      const updates: ReorderTaskInput[] = [
-        {
-          task_id: activeId,
-          new_status: newStatus,
-          new_position: newPosition,
-        },
-      ]
+      // Skip API call if nothing actually changed
+      if (newStatus === draggedTask.status && newPosition === draggedTask.position) return
+
+      const updates: ReorderTaskInput[] = [{ id: activeId, status: newStatus, position: newPosition }]
 
       try {
         await reorderTasks(updates)
       } catch (err) {
-        showError(err instanceof Error ? err.message : 'Failed to reorder tasks')
+        showError(err instanceof Error ? err.message : 'Failed to move task')
       }
     },
     [tasks, reorderTasks, showError],
@@ -173,7 +131,6 @@ export function Board({ filters }: BoardProps) {
   const handleUpdateTask = useCallback(
     async (id: string, data: UpdateTaskInput): Promise<Task> => {
       const updated = await updateTask(id, data)
-      // Sync selected task state
       setSelectedTask((prev) => (prev?.id === id ? updated : prev))
       return updated
     },
@@ -204,7 +161,6 @@ export function Board({ filters }: BoardProps) {
         sensors={sensors}
         collisionDetection={closestCorners}
         onDragStart={handleDragStart}
-        onDragOver={handleDragOver}
         onDragEnd={handleDragEnd}
       >
         <div className="flex gap-5 p-6 overflow-x-auto min-h-full">
@@ -219,7 +175,6 @@ export function Board({ filters }: BoardProps) {
           ))}
         </div>
 
-        {/* Drag overlay */}
         <DragOverlay>
           {activeTask ? (
             <TaskCard task={activeTask} onClick={() => {}} isDragOverlay />
@@ -227,7 +182,6 @@ export function Board({ filters }: BoardProps) {
         </DragOverlay>
       </DndContext>
 
-      {/* Task detail panel */}
       <TaskDetailPanel
         task={selectedTask}
         onClose={() => setSelectedTask(null)}
@@ -235,7 +189,6 @@ export function Board({ filters }: BoardProps) {
         onDelete={handleDeleteTask}
       />
 
-      {/* Create task modal */}
       <Modal
         isOpen={createStatus !== null}
         onClose={() => setCreateStatus(null)}
