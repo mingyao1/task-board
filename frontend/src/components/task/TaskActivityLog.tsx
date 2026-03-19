@@ -12,7 +12,7 @@ import {
   Trash2,
   Edit3,
 } from 'lucide-react'
-import { get } from '@/api/client'
+import { getActivity } from '@/api/activity'
 import { formatRelativeDate } from '@/lib/utils'
 import type { ActivityLog, ActivityAction } from '@/types'
 
@@ -45,9 +45,9 @@ export function TaskActivityLog({ taskId }: TaskActivityLogProps) {
   useEffect(() => {
     let cancelled = false
     setIsLoading(true)
-    get<{ activity: ActivityLog[] }>(`/tasks/${taskId}/activity`)
+    getActivity(taskId)
       .then((data) => {
-        if (!cancelled) setLogs(data.activity ?? [])
+        if (!cancelled) setLogs(data)
       })
       .catch(() => {
         if (!cancelled) setLogs([])
