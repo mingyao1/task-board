@@ -41,10 +41,10 @@ func main() {
 	})
 
 	taskHandler := handlers.NewTaskHandler(services.NewTaskService(restClient))
-	teamMemberHandler := handlers.NewTeamMemberHandler(db)
-	labelHandler := handlers.NewLabelHandler(db)
-	commentHandler := handlers.NewCommentHandler(db)
-	activityHandler := handlers.NewActivityHandler(db)
+	teamMemberHandler := handlers.NewTeamMemberHandler(services.NewTeamService(restClient))
+	labelHandler := handlers.NewLabelHandler(services.NewLabelService(restClient))
+	commentHandler := handlers.NewCommentHandler(services.NewCommentService(restClient))
+	activityHandler := handlers.NewActivityHandler(services.NewActivityService(restClient))
 	statsHandler := handlers.NewStatsHandler(db)
 
 	r.Route("/api/v1", func(r chi.Router) {

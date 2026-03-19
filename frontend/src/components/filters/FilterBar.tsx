@@ -8,6 +8,7 @@ import type { TaskFilters, TaskStatus, TaskPriority } from '@/types'
 import { cn } from '@/lib/utils'
 
 const STATUS_OPTIONS = [
+  { value: '', label: 'Any status' },
   { value: 'todo', label: 'To Do', color: '#A1A1AA' },
   { value: 'in_progress', label: 'In Progress', color: '#3B82F6' },
   { value: 'in_review', label: 'In Review', color: '#F59E0B' },
@@ -15,6 +16,7 @@ const STATUS_OPTIONS = [
 ]
 
 const PRIORITY_OPTIONS = [
+  { value: '', label: 'Any priority' },
   { value: 'high', label: 'High', color: '#EF4444' },
   { value: 'normal', label: 'Normal', color: '#F59E0B' },
   { value: 'low', label: 'Low', color: '#6B7280' },

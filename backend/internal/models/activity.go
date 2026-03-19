@@ -6,14 +6,22 @@ import (
 )
 
 // ActivityAction is the type of event that was recorded.
+// These names match the frontend's ActivityAction union type.
 type ActivityAction string
 
 const (
-	ActivityActionCreated        ActivityAction = "created"
-	ActivityActionStatusChange   ActivityAction = "status_change"
-	ActivityActionPriorityChange ActivityAction = "priority_change"
-	ActivityActionAssign         ActivityAction = "assign"
-	ActivityActionComment        ActivityAction = "comment"
+	ActivityActionCreated         ActivityAction = "created"
+	ActivityActionUpdated         ActivityAction = "updated"
+	ActivityActionStatusChanged   ActivityAction = "status_changed"
+	ActivityActionPriorityChanged ActivityAction = "priority_changed"
+	ActivityActionAssigned        ActivityAction = "assigned"
+	ActivityActionUnassigned      ActivityAction = "unassigned"
+	ActivityActionDueDateSet      ActivityAction = "due_date_set"
+	ActivityActionDueDateCleared  ActivityAction = "due_date_cleared"
+	ActivityActionLabelAdded      ActivityAction = "label_added"
+	ActivityActionLabelRemoved    ActivityAction = "label_removed"
+	ActivityActionCommentAdded    ActivityAction = "comment_added"
+	ActivityActionCommentDeleted  ActivityAction = "comment_deleted"
 )
 
 // ActivityLog records a state-change event on a task.

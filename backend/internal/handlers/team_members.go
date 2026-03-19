@@ -5,20 +5,23 @@ import (
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
-	supa "github.com/supabase-community/supabase-go"
+
+	"task-board/backend/internal/middleware"
+	"task-board/backend/internal/models"
+	"task-board/backend/internal/services"
 )
 
 // TeamMemberHandler handles all team-member-related HTTP requests.
 type TeamMemberHandler struct {
-	db *supa.Client
+	service *services.TeamService
 }
 
-// NewTeamMemberHandler creates a TeamMemberHandler with the given Supabase client.
-func NewTeamMemberHandler(db *supa.Client) *TeamMemberHandler {
-	return &TeamMemberHandler{db: db}
+// NewTeamMemberHandler creates a TeamMemberHandler backed by the given service.
+func NewTeamMemberHandler(service *services.TeamService) *TeamMemberHandler {
+	return &TeamMemberHandler{service: service}
 }
 
-// Routes wires the team-member routes onto r under the caller's mount point.
+// Routes wires the team-member routes onto r.
 func (h *TeamMemberHandler) Routes(r chi.Router) {
 	r.Get("/team-members", h.List)
 	r.Post("/team-members", h.Create)
@@ -28,38 +31,62 @@ func (h *TeamMemberHandler) Routes(r chi.Router) {
 
 // List handles GET /api/v1/team-members
 func (h *TeamMemberHandler) List(w http.ResponseWriter, r *http.Request) {
-	writeJSON(w, http.StatusOK, map[string]any{
-		"members": []any{},
-	})
+	token := middleware.GetToken(r.Context())
+
+	members, err := h.service.List(r.Context(), token)
+	if err != nil {
+		writeError(w, http.StatusInternalServerError, "INTERNAL_ERROR", err.Error())
+		return
+	}
+	writeJSON(w, http.StatusOK, map[string]interface{}{"team_members": members})
 }
 
 // Create handles POST /api/v1/team-members
 func (h *TeamMemberHandler) Create(w http.ResponseWriter, r *http.Request) {
-	var body map[string]any
-	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+	userID := middleware.GetUserID(r.Context())
+	token := middleware.GetToken(r.Context())
+
+	var input models.CreateTeamMemberInput
+	if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
 		writeError(w, http.StatusBadRequest, "VALIDATION_ERROR", "invalid request body")
 		return
 	}
-	writeJSON(w, http.StatusCreated, map[string]any{
-		"member": body,
-	})
+
+	member, err := h.service.Create(r.Context(), userID, token, input)
+	if err != nil {
+		writeError(w, http.StatusInternalServerError, "INTERNAL_ERROR", err.Error())
+		return
+	}
+	writeJSON(w, http.StatusCreated, map[string]interface{}{"team_member": member})
 }
 
 // Update handles PATCH /api/v1/team-members/{id}
 func (h *TeamMemberHandler) Update(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
-	var body map[string]any
-	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+	token := middleware.GetToken(r.Context())
+
+	var input models.UpdateTeamMemberInput
+	if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
 		writeError(w, http.StatusBadRequest, "VALIDATION_ERROR", "invalid request body")
 		return
 	}
-	body["id"] = id
-	writeJSON(w, http.StatusOK, map[string]any{
-		"member": body,
-	})
+
+	member, err := h.service.Update(r.Context(), token, id, input)
+	if err != nil {
+		writeError(w, http.StatusInternalServerError, "INTERNAL_ERROR", err.Error())
+		return
+	}
+	writeJSON(w, http.StatusOK, map[string]interface{}{"team_member": member})
 }
 
 // Delete handles DELETE /api/v1/team-members/{id}
 func (h *TeamMemberHandler) Delete(w http.ResponseWriter, r *http.Request) {
+	id := chi.URLParam(r, "id")
+	token := middleware.GetToken(r.Context())
+
+	if err := h.service.Delete(r.Context(), token, id); err != nil {
+		writeError(w, http.StatusInternalServerError, "INTERNAL_ERROR", err.Error())
+		return
+	}
 	w.WriteHeader(http.StatusNoContent)
 }

@@ -157,6 +157,7 @@ func (h *TaskHandler) Delete(w http.ResponseWriter, r *http.Request) {
 
 // Reorder handles PATCH /api/v1/tasks/reorder
 func (h *TaskHandler) Reorder(w http.ResponseWriter, r *http.Request) {
+	userID := middleware.GetUserID(r.Context())
 	token := middleware.GetToken(r.Context())
 
 	var input models.ReorderInput
@@ -169,7 +170,7 @@ func (h *TaskHandler) Reorder(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := h.service.ReorderTasks(r.Context(), token, input.Updates); err != nil {
+	if err := h.service.ReorderTasks(r.Context(), userID, token, input.Updates); err != nil {
 		writeError(w, http.StatusInternalServerError, "INTERNAL_ERROR", err.Error())
 		return
 	}

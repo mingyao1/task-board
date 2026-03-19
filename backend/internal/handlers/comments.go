@@ -5,49 +5,72 @@ import (
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
-	supa "github.com/supabase-community/supabase-go"
+
+	"task-board/backend/internal/middleware"
+	"task-board/backend/internal/models"
+	"task-board/backend/internal/services"
 )
 
 // CommentHandler handles comment-related HTTP requests.
 type CommentHandler struct {
-	db *supa.Client
+	service *services.CommentService
 }
 
-// NewCommentHandler creates a CommentHandler with the given Supabase client.
-func NewCommentHandler(db *supa.Client) *CommentHandler {
-	return &CommentHandler{db: db}
+// NewCommentHandler creates a CommentHandler backed by the given service.
+func NewCommentHandler(service *services.CommentService) *CommentHandler {
+	return &CommentHandler{service: service}
 }
 
-// Routes wires the comment routes onto r under the caller's mount point.
-// Expected to be mounted under /api/v1/tasks/{taskId}.
-func (h *CommentHandler) Routes(r chi.Router) {
-	r.Get("/comments", h.List)
-	r.Post("/comments", h.Create)
-	r.Delete("/comments/{id}", h.Delete)
-}
+// Routes is unused — comment routes are wired directly in main.go.
+func (h *CommentHandler) Routes(_ chi.Router) {}
 
 // List handles GET /api/v1/tasks/{taskId}/comments
 func (h *CommentHandler) List(w http.ResponseWriter, r *http.Request) {
-	writeJSON(w, http.StatusOK, map[string]any{
-		"comments": []any{},
-	})
+	taskID := chi.URLParam(r, "taskId")
+	token := middleware.GetToken(r.Context())
+
+	comments, err := h.service.ListComments(r.Context(), token, taskID)
+	if err != nil {
+		writeError(w, http.StatusInternalServerError, "INTERNAL_ERROR", err.Error())
+		return
+	}
+	writeJSON(w, http.StatusOK, map[string]interface{}{"comments": comments})
 }
 
 // Create handles POST /api/v1/tasks/{taskId}/comments
 func (h *CommentHandler) Create(w http.ResponseWriter, r *http.Request) {
 	taskID := chi.URLParam(r, "taskId")
-	var body map[string]any
-	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+	userID := middleware.GetUserID(r.Context())
+	token := middleware.GetToken(r.Context())
+
+	var input models.CreateCommentInput
+	if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
 		writeError(w, http.StatusBadRequest, "VALIDATION_ERROR", "invalid request body")
 		return
 	}
-	body["task_id"] = taskID
-	writeJSON(w, http.StatusCreated, map[string]any{
-		"comment": body,
-	})
+	if input.Content == "" {
+		writeError(w, http.StatusBadRequest, "VALIDATION_ERROR", "content is required")
+		return
+	}
+
+	comment, err := h.service.CreateComment(r.Context(), token, taskID, userID, input.Content)
+	if err != nil {
+		writeError(w, http.StatusInternalServerError, "INTERNAL_ERROR", err.Error())
+		return
+	}
+	writeJSON(w, http.StatusCreated, map[string]interface{}{"comment": comment})
 }
 
-// Delete handles DELETE /api/v1/tasks/{taskId}/comments/{id}
+// Delete handles DELETE /api/v1/tasks/{taskId}/comments/{commentId}
 func (h *CommentHandler) Delete(w http.ResponseWriter, r *http.Request) {
+	taskID := chi.URLParam(r, "taskId")
+	commentID := chi.URLParam(r, "commentId")
+	userID := middleware.GetUserID(r.Context())
+	token := middleware.GetToken(r.Context())
+
+	if err := h.service.DeleteComment(r.Context(), token, taskID, commentID, userID); err != nil {
+		writeError(w, http.StatusInternalServerError, "INTERNAL_ERROR", err.Error())
+		return
+	}
 	w.WriteHeader(http.StatusNoContent)
 }

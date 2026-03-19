@@ -17,6 +17,7 @@ import { Modal } from '@/components/ui/Modal'
 import { BoardSkeleton } from '@/components/ui/Skeleton'
 import { useToast } from '@/components/ui/Toast'
 import { useTasks } from '@/hooks/useTasks'
+import { useTeamMembers } from '@/hooks/useTeamMembers'
 import type { Task, TaskStatus, TaskFilters, CreateTaskInput, UpdateTaskInput, ReorderTaskInput } from '@/types'
 
 const STATUSES: TaskStatus[] = ['todo', 'in_progress', 'in_review', 'done']
@@ -26,9 +27,23 @@ interface BoardProps {
 }
 
 export function Board({ filters }: BoardProps) {
-  const { tasks, isLoading, error, createTask, updateTask, deleteTask, reorderTasks } =
+  const { tasks, isLoading, error, createTask, updateTask, deleteTask, reorderTasks, setTasks } =
     useTasks(filters)
   const { showError, showSuccess } = useToast()
+  const { lastDeletedMemberId } = useTeamMembers()
+
+  // When a team member is deleted, clear their assignee data from local task state
+  // without refetching — keeps the board in sync immediately.
+  React.useEffect(() => {
+    if (!lastDeletedMemberId) return
+    setTasks((prev) =>
+      prev.map((t) =>
+        t.assignee_id === lastDeletedMemberId
+          ? { ...t, assignee_id: null, assignee: null }
+          : t,
+      ),
+    )
+  }, [lastDeletedMemberId, setTasks])
 
   const [activeTask, setActiveTask] = useState<Task | null>(null)
   const [selectedTask, setSelectedTask] = useState<Task | null>(null)
@@ -103,7 +118,7 @@ export function Board({ filters }: BoardProps) {
       // Skip API call if nothing actually changed
       if (newStatus === draggedTask.status && newPosition === draggedTask.position) return
 
-      const updates: ReorderTaskInput[] = [{ id: activeId, status: newStatus, position: newPosition }]
+      const updates: ReorderTaskInput[] = [{ id: activeId, status: newStatus, old_status: draggedTask.status, position: newPosition }]
 
       try {
         await reorderTasks(updates)

@@ -60,7 +60,7 @@ export function TaskForm({ task, defaultStatus = 'todo', onSubmit, onCancel }: T
     try {
       const data: CreateTaskInput | UpdateTaskInput = {
         title: title.trim(),
-        description: description.trim() || undefined,
+        description: description.trim() || (task ? null : undefined),
         status,
         priority,
         due_date: dueDate || null,

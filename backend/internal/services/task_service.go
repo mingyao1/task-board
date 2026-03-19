@@ -55,10 +55,10 @@ type pgMember struct {
 }
 
 type pgLabelRow struct {
-	Labels *pgLabel `json:"labels"`
+	Labels *pgEmbeddedLabel `json:"labels"`
 }
 
-type pgLabel struct {
+type pgEmbeddedLabel struct {
 	ID    string `json:"id"`
 	Name  string `json:"name"`
 	Color string `json:"color"`
@@ -89,12 +89,12 @@ func (pg pgTask) toTask() models.Task {
 	}
 
 	for _, tl := range pg.TaskLabels {
-		if tl.Labels != nil {
-			task.LabelIDs = append(task.LabelIDs, tl.Labels.ID)
+		if l := tl.Labels; l != nil {
+			task.LabelIDs = append(task.LabelIDs, l.ID)
 			task.Labels = append(task.Labels, models.Label{
-				ID:    tl.Labels.ID,
-				Name:  tl.Labels.Name,
-				Color: tl.Labels.Color,
+				ID:    l.ID,
+				Name:  l.Name,
+				Color: l.Color,
 			})
 		}
 	}
@@ -257,7 +257,7 @@ func (s *TaskService) CreateTask(ctx context.Context, userID, token string, inpu
 	}
 
 	// Activity log — non-fatal if it fails.
-	_ = s.createActivityLog(ctx, token, taskID, userID, models.ActivityActionCreated, map[string]interface{}{})
+	_ = s.createActivityLog(ctx, token, taskID, userID, models.ActivityActionCreated, map[string]interface{}{"title": input.Title})
 
 	return s.fetchOne(ctx, token, taskID)
 }
@@ -328,21 +328,100 @@ func (s *TaskService) UpdateTask(ctx context.Context, userID, token, id string, 
 		}
 	}
 
-	// Activity logs — non-fatal.
+	// Fetch updated state so we can compare assignee/label names in logs.
+	updated, err := s.fetchOne(ctx, token, id)
+	if err != nil {
+		return models.Task{}, err
+	}
+
+	// Activity logs — all non-fatal.
+
+	// Status change.
 	if input.Status != nil && *input.Status != current.Status {
-		_ = s.createActivityLog(ctx, token, id, userID, models.ActivityActionStatusChange, map[string]string{
+		_ = s.createActivityLog(ctx, token, id, userID, models.ActivityActionStatusChanged, map[string]string{
 			"from": string(current.Status),
 			"to":   string(*input.Status),
 		})
 	}
+
+	// Priority change.
 	if input.Priority != nil && *input.Priority != current.Priority {
-		_ = s.createActivityLog(ctx, token, id, userID, models.ActivityActionPriorityChange, map[string]string{
+		_ = s.createActivityLog(ctx, token, id, userID, models.ActivityActionPriorityChanged, map[string]string{
 			"from": string(current.Priority),
 			"to":   string(*input.Priority),
 		})
 	}
 
-	return s.fetchOne(ctx, token, id)
+	// Title or description change — logged as a single "updated" event.
+	titleChanged := input.Title != nil && *input.Title != current.Title
+	descChanged := false
+	if input.Description != nil {
+		oldDesc := ""
+		if current.Description != nil {
+			oldDesc = *current.Description
+		}
+		descChanged = *input.Description != oldDesc
+	}
+	if titleChanged || descChanged {
+		_ = s.createActivityLog(ctx, token, id, userID, models.ActivityActionUpdated, map[string]string{})
+	}
+
+	// Due date change.
+	if input.DueDate != nil {
+		oldDate := ""
+		if current.DueDate != nil {
+			oldDate = *current.DueDate
+		}
+		newDate := *input.DueDate
+		if newDate == "" && oldDate != "" {
+			_ = s.createActivityLog(ctx, token, id, userID, models.ActivityActionDueDateCleared, map[string]string{"from": oldDate})
+		} else if newDate != "" && newDate != oldDate {
+			_ = s.createActivityLog(ctx, token, id, userID, models.ActivityActionDueDateSet, map[string]string{"to": newDate})
+		}
+	}
+
+	// Assignee change.
+	if input.AssigneeID != nil {
+		oldHas := current.AssigneeID != nil && *current.AssigneeID != ""
+		newEmpty := *input.AssigneeID == ""
+		if oldHas && newEmpty {
+			name := ""
+			if current.Assignee != nil {
+				name = current.Assignee.Name
+			}
+			_ = s.createActivityLog(ctx, token, id, userID, models.ActivityActionUnassigned, map[string]string{"to": name})
+		} else if !newEmpty && (!oldHas || *current.AssigneeID != *input.AssigneeID) {
+			name := ""
+			if updated.Assignee != nil {
+				name = updated.Assignee.Name
+			}
+			_ = s.createActivityLog(ctx, token, id, userID, models.ActivityActionAssigned, map[string]string{"to": name})
+		}
+	}
+
+	// Label changes.
+	if input.LabelIDs != nil {
+		oldLabels := map[string]string{}
+		for _, l := range current.Labels {
+			oldLabels[l.ID] = l.Name
+		}
+		newLabels := map[string]string{}
+		for _, l := range updated.Labels {
+			newLabels[l.ID] = l.Name
+		}
+		for lid, name := range newLabels {
+			if _, exists := oldLabels[lid]; !exists {
+				_ = s.createActivityLog(ctx, token, id, userID, models.ActivityActionLabelAdded, map[string]string{"to": name})
+			}
+		}
+		for lid, name := range oldLabels {
+			if _, exists := newLabels[lid]; !exists {
+				_ = s.createActivityLog(ctx, token, id, userID, models.ActivityActionLabelRemoved, map[string]string{"to": name})
+			}
+		}
+	}
+
+	return updated, nil
 }
 
 // DeleteTask deletes a task by ID. Cascading deletes in the DB clean up relations.
@@ -363,7 +442,8 @@ func (s *TaskService) DeleteTask(ctx context.Context, token, id string) error {
 }
 
 // ReorderTasks applies bulk position/status updates after a drag-and-drop.
-func (s *TaskService) ReorderTasks(ctx context.Context, token string, updates []models.ReorderItem) error {
+// userID is used to attribute status-change activity log entries.
+func (s *TaskService) ReorderTasks(ctx context.Context, userID, token string, updates []models.ReorderItem) error {
 	for _, update := range updates {
 		body, status, err := s.rest.Do(ctx, RequestOptions{
 			Method: "PATCH",
@@ -380,6 +460,14 @@ func (s *TaskService) ReorderTasks(ctx context.Context, token string, updates []
 		}
 		if status != 200 && status != 204 {
 			return parsePostgRESTError(body, status)
+		}
+
+		// Log status change when the column changed.
+		if update.OldStatus != "" && update.OldStatus != update.Status {
+			_ = s.createActivityLog(ctx, token, update.ID, userID, models.ActivityActionStatusChanged, map[string]string{
+				"from": string(update.OldStatus),
+				"to":   string(update.Status),
+			})
 		}
 	}
 	return nil
@@ -504,10 +592,6 @@ func (s *TaskService) setLabels(ctx context.Context, token, taskID string, label
 
 // createActivityLog inserts a row into activity_logs.
 func (s *TaskService) createActivityLog(ctx context.Context, token, taskID, userID string, action models.ActivityAction, details interface{}) error {
-	detailsJSON, err := json.Marshal(details)
-	if err != nil {
-		return err
-	}
 	_, statusCode, err := s.rest.Do(ctx, RequestOptions{
 		Method: "POST",
 		Path:   "/activity_logs",
@@ -516,7 +600,7 @@ func (s *TaskService) createActivityLog(ctx context.Context, token, taskID, user
 			"task_id": taskID,
 			"user_id": userID,
 			"action":  string(action),
-			"details": string(detailsJSON),
+			"details": details, // passed as Go value so json.Marshal serializes it as a JSON object
 		},
 	})
 	if err != nil {

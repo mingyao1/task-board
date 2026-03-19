@@ -70,9 +70,10 @@ type UpdateTaskInput struct {
 
 // ReorderItem represents a single task position update in the bulk reorder request.
 type ReorderItem struct {
-	ID       string     `json:"id"`
-	Status   TaskStatus `json:"status"`
-	Position int        `json:"position"`
+	ID        string     `json:"id"`
+	Status    TaskStatus `json:"status"`
+	OldStatus TaskStatus `json:"old_status,omitempty"` // optional: previous status, used for activity logging
+	Position  int        `json:"position"`
 }
 
 // ReorderInput is the request body for PATCH /api/v1/tasks/reorder.

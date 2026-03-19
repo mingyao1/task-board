@@ -134,6 +134,7 @@ export interface UpdateTaskInput {
 export interface ReorderTaskInput {
   id: string
   status: TaskStatus
+  old_status?: TaskStatus
   position: number
 }
 
