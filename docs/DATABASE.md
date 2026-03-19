@@ -13,7 +13,6 @@
 ### Enable UUID Extension
 
 ```sql
--- Usually enabled by default in Supabase, but ensure it's there
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 ```
 

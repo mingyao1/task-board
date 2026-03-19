@@ -34,3 +34,7 @@ backend/vendor/
 # Logs
 *.log
 npm-debug.log*
+
+# Solution write-up (local only)
+SOLUTION.md
+SOLUTION.txt
