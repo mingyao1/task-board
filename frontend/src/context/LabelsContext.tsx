@@ -6,6 +6,7 @@ interface LabelsContextValue {
   labels: Label[]
   isLoading: boolean
   error: string | null
+  lastDeletedLabelId: string | null
   refetch: () => Promise<void>
   createLabel: (input: CreateLabelInput) => Promise<Label>
   updateLabel: (id: string, input: UpdateLabelInput) => Promise<Label>
@@ -18,6 +19,7 @@ export function LabelsProvider({ children }: { children: React.ReactNode }) {
   const [labels, setLabels] = useState<Label[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [lastDeletedLabelId, setLastDeletedLabelId] = useState<string | null>(null)
 
   const fetchLabels = useCallback(async () => {
     try {
@@ -52,6 +54,7 @@ export function LabelsProvider({ children }: { children: React.ReactNode }) {
     setLabels((prev) => prev.filter((l) => l.id !== id))
     try {
       await labelsApi.deleteLabel(id)
+      setLastDeletedLabelId(id)
     } catch (err) {
       await fetchLabels()
       throw err
@@ -60,7 +63,7 @@ export function LabelsProvider({ children }: { children: React.ReactNode }) {
 
   return (
     <LabelsContext.Provider
-      value={{ labels, isLoading, error, refetch: fetchLabels, createLabel, updateLabel, deleteLabel }}
+      value={{ labels, isLoading, error, lastDeletedLabelId, refetch: fetchLabels, createLabel, updateLabel, deleteLabel }}
     >
       {children}
     </LabelsContext.Provider>

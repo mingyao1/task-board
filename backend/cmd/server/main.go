@@ -45,7 +45,7 @@ func main() {
 	labelHandler := handlers.NewLabelHandler(services.NewLabelService(restClient))
 	commentHandler := handlers.NewCommentHandler(services.NewCommentService(restClient))
 	activityHandler := handlers.NewActivityHandler(services.NewActivityService(restClient))
-	statsHandler := handlers.NewStatsHandler(db)
+	statsHandler := handlers.NewStatsHandler(services.NewStatsService(restClient))
 
 	r.Route("/api/v1", func(r chi.Router) {
 		r.Use(middleware.Auth(db))
