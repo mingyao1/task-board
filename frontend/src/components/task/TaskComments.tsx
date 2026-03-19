@@ -69,29 +69,29 @@ export function TaskComments({ taskId }: TaskCommentsProps) {
         <div className="space-y-3">
           {[1, 2].map((i) => (
             <div key={i} className="space-y-1.5 animate-pulse">
-              <div className="h-3 bg-[#27272A] rounded w-1/4" />
-              <div className="h-12 bg-[#27272A] rounded" />
+              <div className="h-3 bg-[var(--color-border-subtle)] rounded w-1/4" />
+              <div className="h-12 bg-[var(--color-border-subtle)] rounded" />
             </div>
           ))}
         </div>
       ) : comments.length === 0 ? (
-        <p className="text-xs text-[#71717A] py-1">No comments yet. Be the first to comment.</p>
+        <p className="text-xs text-[var(--color-text-muted)] py-1">No comments yet. Be the first to comment.</p>
       ) : (
         <div className="space-y-3">
           {comments.map((comment) => (
             <div key={comment.id} className="group space-y-1">
               <div className="flex items-center justify-between">
-                <span className="text-xs text-[#71717A]">
+                <span className="text-xs text-[var(--color-text-muted)]">
                   {formatRelativeDate(comment.created_at)}
                 </span>
                 <button
                   onClick={() => handleDelete(comment.id)}
-                  className="opacity-0 group-hover:opacity-100 p-0.5 rounded text-[#71717A] hover:text-[#EF4444] transition-all"
+                  className="opacity-0 group-hover:opacity-100 p-0.5 rounded text-[var(--color-text-muted)] hover:text-[#EF4444] transition-all"
                 >
                   <Trash2 size={12} />
                 </button>
               </div>
-              <div className="px-3 py-2.5 rounded-lg bg-[#27272A] text-sm text-[#A1A1AA] leading-relaxed">
+              <div className="px-3 py-2.5 rounded-lg bg-[var(--color-border-subtle)] text-sm text-[var(--color-text-secondary)] leading-relaxed">
                 {comment.content}
               </div>
             </div>
@@ -110,8 +110,8 @@ export function TaskComments({ taskId }: TaskCommentsProps) {
           rows={3}
           className={cn(
             'w-full px-3 py-2.5 rounded-lg text-sm resize-none',
-            'bg-[#27272A] border border-[#3F3F46]',
-            'text-[#FAFAFA] placeholder:text-[#71717A]',
+            'bg-[var(--color-border-subtle)] border border-[var(--color-border-hover)]',
+            'text-[var(--color-text-primary)] placeholder:text-[var(--color-text-muted)]',
             'focus:outline-none focus:ring-2 focus:ring-[#6366F1]/50 focus:border-[#6366F1]',
             'transition-colors duration-150',
           )}

@@ -53,7 +53,7 @@ export function Modal({ isOpen, onClose, title, children, className, size = 'md'
       {/* Modal */}
       <div
         className={cn(
-          'relative w-full rounded-xl bg-[#18181B] border border-[#27272A]',
+          'relative w-full rounded-xl bg-[var(--color-bg-card)] border border-[var(--color-border-subtle)]',
           'shadow-2xl shadow-black/50',
           sizeClasses[size],
           className,
@@ -61,11 +61,11 @@ export function Modal({ isOpen, onClose, title, children, className, size = 'md'
         onClick={(e) => e.stopPropagation()}
       >
         {title && (
-          <div className="flex items-center justify-between px-5 py-4 border-b border-[#27272A]">
-            <h2 className="text-sm font-semibold text-[#FAFAFA]">{title}</h2>
+          <div className="flex items-center justify-between px-5 py-4 border-b border-[var(--color-border-subtle)]">
+            <h2 className="text-sm font-semibold text-[var(--color-text-primary)]">{title}</h2>
             <button
               onClick={onClose}
-              className="p-1 rounded-md text-[#71717A] hover:text-[#FAFAFA] hover:bg-[#27272A] transition-colors"
+              className="p-1 rounded-md text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-border-subtle)] transition-colors"
             >
               <X size={16} />
             </button>

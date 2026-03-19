@@ -40,7 +40,7 @@ export function TaskCard({ task, onClick, isDragOverlay = false }: TaskCardProps
     overdue: 'bg-[#EF4444]/10 text-[#EF4444]',
     today: 'bg-[#F59E0B]/10 text-[#F59E0B]',
     soon: 'bg-[#3B82F6]/10 text-[#3B82F6]',
-    normal: 'bg-[#27272A] text-[#71717A]',
+    normal: 'bg-[var(--color-border-subtle)] text-[var(--color-text-muted)]',
   }
 
   return (
@@ -51,9 +51,9 @@ export function TaskCard({ task, onClick, isDragOverlay = false }: TaskCardProps
       {...listeners}
       onClick={() => onClick(task)}
       className={cn(
-        'group relative bg-[#18181B] rounded-lg border border-[#27272A]',
+        'group relative bg-[var(--color-bg-card)] rounded-lg border border-[var(--color-border-subtle)]',
         'p-3 space-y-2.5 cursor-pointer',
-        'hover:border-[#3F3F46] hover:shadow-lg hover:shadow-black/20',
+        'hover:border-[var(--color-border-hover)] hover:shadow-lg hover:shadow-black/20',
         'transition-all duration-150',
         isDragging && 'opacity-40 border-[#6366F1]/50',
         isDragOverlay && 'shadow-2xl shadow-black/60 rotate-1 scale-105 border-[#6366F1]/30',
@@ -66,7 +66,7 @@ export function TaskCard({ task, onClick, isDragOverlay = false }: TaskCardProps
       />
 
       {/* Title */}
-      <p className="text-[14px] font-medium text-[#FAFAFA] leading-snug pl-2 line-clamp-2">
+      <p className="text-[14px] font-medium text-[var(--color-text-primary)] leading-snug pl-2 line-clamp-2">
         {task.title}
       </p>
 
@@ -77,7 +77,7 @@ export function TaskCard({ task, onClick, isDragOverlay = false }: TaskCardProps
             <LabelBadge key={label.id} label={label} />
           ))}
           {task.labels.length > 3 && (
-            <span className="text-[11px] text-[#71717A] px-1.5 py-0.5 rounded-full bg-[#27272A]">
+            <span className="text-[11px] text-[var(--color-text-muted)] px-1.5 py-0.5 rounded-full bg-[var(--color-border-subtle)]">
               +{task.labels.length - 3}
             </span>
           )}
@@ -115,7 +115,7 @@ export function TaskCard({ task, onClick, isDragOverlay = false }: TaskCardProps
             name={task.assignee.name}
             color={task.assignee.color}
             size="sm"
-            className="ring-1 ring-[#18181B]"
+            className="ring-1 ring-[var(--color-bg-card)]"
           />
         )}
       </div>

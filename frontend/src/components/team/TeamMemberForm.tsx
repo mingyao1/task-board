@@ -56,7 +56,7 @@ export function TeamMemberForm({
       />
 
       <div className="space-y-1.5">
-        <label className="text-[13px] font-medium text-[#A1A1AA]">Color</label>
+        <label className="text-[13px] font-medium text-[var(--color-text-secondary)]">Color</label>
         <div className="flex flex-wrap gap-2">
           {PRESET_COLORS.map((c) => (
             <button
@@ -65,7 +65,7 @@ export function TeamMemberForm({
               onClick={() => setColor(c)}
               className={cn(
                 'w-7 h-7 rounded-full transition-transform',
-                color === c && 'ring-2 ring-offset-2 ring-offset-[#18181B] ring-white scale-110',
+                color === c && 'ring-2 ring-offset-2 ring-offset-[var(--color-bg-card)] ring-white scale-110',
               )}
               style={{ backgroundColor: c }}
             />

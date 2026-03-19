@@ -43,14 +43,14 @@ export function LabelPicker({ selectedIds, onChange, className }: LabelPickerPro
         onClick={() => setIsOpen((v) => !v)}
         className={cn(
           'flex items-center gap-2 w-full px-3 py-2 rounded-md text-sm',
-          'bg-[#18181B] border border-[#27272A] hover:border-[#3F3F46]',
+          'bg-[var(--color-bg-card)] border border-[var(--color-border-subtle)] hover:border-[var(--color-border-hover)]',
           'text-left transition-colors duration-150',
           'focus:outline-none focus:ring-2 focus:ring-[#6366F1]/50',
         )}
       >
-        <Tag size={14} className="text-[#71717A] flex-shrink-0" />
+        <Tag size={14} className="text-[var(--color-text-muted)] flex-shrink-0" />
         {selectedLabels.length === 0 ? (
-          <span className="text-[#71717A]">Add labels...</span>
+          <span className="text-[var(--color-text-muted)]">Add labels...</span>
         ) : (
           <div className="flex flex-wrap gap-1">
             {selectedLabels.map((label) => (
@@ -70,22 +70,22 @@ export function LabelPicker({ selectedIds, onChange, className }: LabelPickerPro
       </button>
 
       {isOpen && (
-        <div className="absolute z-50 top-full left-0 mt-1 w-full min-w-[200px] rounded-md bg-[#18181B] border border-[#27272A] shadow-xl shadow-black/40 py-1">
+        <div className="absolute z-50 top-full left-0 mt-1 w-full min-w-[200px] rounded-md bg-[var(--color-bg-card)] border border-[var(--color-border-subtle)] shadow-xl shadow-black/40 py-1">
           {labels.length === 0 ? (
-            <p className="px-3 py-2 text-xs text-[#71717A]">No labels created yet</p>
+            <p className="px-3 py-2 text-xs text-[var(--color-text-muted)]">No labels created yet</p>
           ) : (
             labels.map((label: Label) => (
               <button
                 key={label.id}
                 type="button"
                 onClick={() => toggle(label.id)}
-                className="flex items-center gap-2 w-full px-3 py-2 text-sm text-left hover:bg-[#27272A] transition-colors"
+                className="flex items-center gap-2 w-full px-3 py-2 text-sm text-left hover:bg-[var(--color-border-subtle)] transition-colors"
               >
                 <span
                   className="w-3 h-3 rounded-full flex-shrink-0"
                   style={{ backgroundColor: label.color }}
                 />
-                <span className="flex-1 text-[#A1A1AA]">{label.name}</span>
+                <span className="flex-1 text-[var(--color-text-secondary)]">{label.name}</span>
                 {selectedIds.includes(label.id) && (
                   <Check size={12} className="text-[#6366F1]" />
                 )}

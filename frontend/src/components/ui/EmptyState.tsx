@@ -22,13 +22,13 @@ export function EmptyState({ icon, title, description, action, className }: Empt
       )}
     >
       {icon && (
-        <div className="flex items-center justify-center w-12 h-12 rounded-full bg-[#27272A] text-[#71717A]">
+        <div className="flex items-center justify-center w-12 h-12 rounded-full bg-[var(--color-border-subtle)] text-[var(--color-text-muted)]">
           {icon}
         </div>
       )}
       <div className="space-y-1">
-        <p className="text-sm font-medium text-[#A1A1AA]">{title}</p>
-        {description && <p className="text-xs text-[#71717A]">{description}</p>}
+        <p className="text-sm font-medium text-[var(--color-text-secondary)]">{title}</p>
+        {description && <p className="text-xs text-[var(--color-text-muted)]">{description}</p>}
       </div>
       {action && (
         <Button variant="secondary" size="sm" onClick={action.onClick}>

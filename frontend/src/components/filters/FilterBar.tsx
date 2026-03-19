@@ -61,7 +61,7 @@ export function FilterBar({ filters, onChange, className }: FilterBarProps) {
 
   return (
     <div className={cn('flex items-center gap-2 flex-wrap', className)}>
-      <div className="flex items-center gap-1 text-[#71717A]">
+      <div className="flex items-center gap-1 text-[var(--color-text-muted)]">
         <SlidersHorizontal size={14} />
         <span className="text-xs font-medium">Filter:</span>
       </div>
@@ -135,7 +135,7 @@ export function FilterBar({ filters, onChange, className }: FilterBarProps) {
       {activeFiltersCount > 0 && (
         <button
           onClick={clearAll}
-          className="text-xs text-[#71717A] hover:text-[#FAFAFA] transition-colors underline underline-offset-2"
+          className="text-xs text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] transition-colors underline underline-offset-2"
         >
           Clear all
         </button>

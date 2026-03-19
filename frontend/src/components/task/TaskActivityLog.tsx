@@ -63,10 +63,10 @@ export function TaskActivityLog({ taskId }: TaskActivityLogProps) {
       <div className="space-y-3">
         {[1, 2, 3].map((i) => (
           <div key={i} className="flex gap-3 animate-pulse">
-            <div className="w-6 h-6 rounded-full bg-[#27272A] flex-shrink-0" />
+            <div className="w-6 h-6 rounded-full bg-[var(--color-border-subtle)] flex-shrink-0" />
             <div className="flex-1 space-y-1">
-              <div className="h-3 bg-[#27272A] rounded w-2/3" />
-              <div className="h-2.5 bg-[#27272A] rounded w-1/3" />
+              <div className="h-3 bg-[var(--color-border-subtle)] rounded w-2/3" />
+              <div className="h-2.5 bg-[var(--color-border-subtle)] rounded w-1/3" />
             </div>
           </div>
         ))}
@@ -75,13 +75,13 @@ export function TaskActivityLog({ taskId }: TaskActivityLogProps) {
   }
 
   if (logs.length === 0) {
-    return <p className="text-xs text-[#71717A] py-2">No activity yet</p>
+    return <p className="text-xs text-[var(--color-text-muted)] py-2">No activity yet</p>
   }
 
   return (
     <div className="relative space-y-4">
       {/* Vertical line */}
-      <div className="absolute left-[11px] top-2 bottom-2 w-px bg-[#27272A]" />
+      <div className="absolute left-[11px] top-2 bottom-2 w-px bg-[var(--color-border-subtle)]" />
 
       {logs.map((log) => {
         const config = actionConfig[log.action] ?? {
@@ -103,14 +103,14 @@ export function TaskActivityLog({ taskId }: TaskActivityLogProps) {
 
             {/* Content */}
             <div className="flex-1 min-w-0 pt-0.5">
-              <p className="text-xs text-[#A1A1AA]">
-                <span className="font-medium text-[#FAFAFA]">You</span>{' '}
+              <p className="text-xs text-[var(--color-text-secondary)]">
+                <span className="font-medium text-[var(--color-text-primary)]">You</span>{' '}
                 {config.label}
                 {log.new_value && (
-                  <span className="font-medium text-[#FAFAFA]"> {log.new_value}</span>
+                  <span className="font-medium text-[var(--color-text-primary)]"> {log.new_value}</span>
                 )}
               </p>
-              <p className="text-[11px] text-[#71717A] mt-0.5">
+              <p className="text-[11px] text-[var(--color-text-muted)] mt-0.5">
                 {formatRelativeDate(log.created_at)}
               </p>
             </div>

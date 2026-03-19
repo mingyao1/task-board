@@ -19,7 +19,7 @@ export function SearchBar({
     <div className={cn('relative', className)}>
       <Search
         size={14}
-        className="absolute left-3 top-1/2 -translate-y-1/2 text-[#71717A] pointer-events-none"
+        className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--color-text-muted)] pointer-events-none"
       />
       <input
         type="text"
@@ -28,8 +28,8 @@ export function SearchBar({
         placeholder={placeholder}
         className={cn(
           'w-full pl-9 pr-8 py-2 rounded-md text-sm',
-          'bg-[#18181B] border border-[#27272A] hover:border-[#3F3F46]',
-          'text-[#FAFAFA] placeholder:text-[#71717A]',
+          'bg-[var(--color-bg-card)] border border-[var(--color-border-subtle)] hover:border-[var(--color-border-hover)]',
+          'text-[var(--color-text-primary)] placeholder:text-[var(--color-text-muted)]',
           'transition-colors duration-150',
           'focus:outline-none focus:ring-2 focus:ring-[#6366F1]/50 focus:border-[#6366F1]',
         )}
@@ -37,7 +37,7 @@ export function SearchBar({
       {value && (
         <button
           onClick={() => onChange('')}
-          className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[#71717A] hover:text-[#FAFAFA] transition-colors"
+          className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] transition-colors"
         >
           <X size={14} />
         </button>

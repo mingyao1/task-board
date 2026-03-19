@@ -35,12 +35,12 @@ export function TeamMemberList() {
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between">
-        <span className="text-[11px] font-semibold uppercase tracking-wider text-[#71717A]">
+        <span className="text-[11px] font-semibold uppercase tracking-wider text-[var(--color-text-muted)]">
           Team
         </span>
         <button
           onClick={() => setIsFormOpen(true)}
-          className="p-1 rounded text-[#71717A] hover:text-[#FAFAFA] hover:bg-[#27272A] transition-colors"
+          className="p-1 rounded text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-border-subtle)] transition-colors"
           title="Add team member"
         >
           <Plus size={14} />
@@ -50,23 +50,23 @@ export function TeamMemberList() {
       {isLoading ? (
         <div className="flex gap-1.5">
           {[1, 2, 3].map((i) => (
-            <div key={i} className="w-8 h-8 rounded-full bg-[#27272A] animate-pulse" />
+            <div key={i} className="w-8 h-8 rounded-full bg-[var(--color-border-subtle)] animate-pulse" />
           ))}
         </div>
       ) : teamMembers.length === 0 ? (
-        <p className="text-xs text-[#71717A]">No team members yet</p>
+        <p className="text-xs text-[var(--color-text-muted)]">No team members yet</p>
       ) : (
         <div className="space-y-1.5">
           {teamMembers.map((member) => (
             <div
               key={member.id}
-              className="group flex items-center gap-2.5 px-2 py-1.5 rounded-md hover:bg-[#27272A] transition-colors"
+              className="group flex items-center gap-2.5 px-2 py-1.5 rounded-md hover:bg-[var(--color-border-subtle)] transition-colors"
             >
               <AvatarBadge name={member.name} color={member.color} size="sm" />
-              <span className="text-[13px] text-[#A1A1AA] flex-1 truncate">{member.name}</span>
+              <span className="text-[13px] text-[var(--color-text-secondary)] flex-1 truncate">{member.name}</span>
               <button
                 onClick={() => handleDelete(member)}
-                className="opacity-0 group-hover:opacity-100 p-0.5 rounded text-[#71717A] hover:text-[#EF4444] transition-all"
+                className="opacity-0 group-hover:opacity-100 p-0.5 rounded text-[var(--color-text-muted)] hover:text-[#EF4444] transition-all"
               >
                 <Trash2 size={12} />
               </button>

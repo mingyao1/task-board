@@ -97,7 +97,7 @@ export function TaskForm({ task, defaultStatus = 'todo', onSubmit, onCancel }: T
 
       <div className="grid grid-cols-2 gap-3">
         <div className="space-y-1.5">
-          <label className="text-[13px] font-medium text-[#A1A1AA]">Status</label>
+          <label className="text-[13px] font-medium text-[var(--color-text-secondary)]">Status</label>
           <Dropdown
             options={STATUS_OPTIONS}
             value={status}
@@ -105,7 +105,7 @@ export function TaskForm({ task, defaultStatus = 'todo', onSubmit, onCancel }: T
           />
         </div>
         <div className="space-y-1.5">
-          <label className="text-[13px] font-medium text-[#A1A1AA]">Priority</label>
+          <label className="text-[13px] font-medium text-[var(--color-text-secondary)]">Priority</label>
           <Dropdown
             options={PRIORITY_OPTIONS}
             value={priority}
@@ -115,17 +115,17 @@ export function TaskForm({ task, defaultStatus = 'todo', onSubmit, onCancel }: T
       </div>
 
       <div className="space-y-1.5">
-        <label className="text-[13px] font-medium text-[#A1A1AA]">Due Date</label>
+        <label className="text-[13px] font-medium text-[var(--color-text-secondary)]">Due Date</label>
         <input
           type="date"
           value={dueDate}
           onChange={(e) => setDueDate(e.target.value)}
-          className="w-full px-3 py-2 rounded-md text-sm bg-[#18181B] border border-[#27272A] text-[#FAFAFA] focus:outline-none focus:ring-2 focus:ring-[#6366F1]/50 focus:border-[#6366F1] transition-colors [color-scheme:dark]"
+          className="w-full px-3 py-2 rounded-md text-sm bg-[var(--color-bg-card)] border border-[var(--color-border-subtle)] text-[var(--color-text-primary)] focus:outline-none focus:ring-2 focus:ring-[#6366F1]/50 focus:border-[#6366F1] transition-colors"
         />
       </div>
 
       <div className="space-y-1.5">
-        <label className="text-[13px] font-medium text-[#A1A1AA]">Assignee</label>
+        <label className="text-[13px] font-medium text-[var(--color-text-secondary)]">Assignee</label>
         <Dropdown
           options={assigneeOptions}
           value={assigneeId}
@@ -135,11 +135,11 @@ export function TaskForm({ task, defaultStatus = 'todo', onSubmit, onCancel }: T
       </div>
 
       <div className="space-y-1.5">
-        <label className="text-[13px] font-medium text-[#A1A1AA]">Labels</label>
+        <label className="text-[13px] font-medium text-[var(--color-text-secondary)]">Labels</label>
         <LabelPicker selectedIds={labelIds} onChange={setLabelIds} />
       </div>
 
-      <div className="flex gap-2 pt-2 border-t border-[#27272A]">
+      <div className="flex gap-2 pt-2 border-t border-[var(--color-border-subtle)]">
         <Button type="submit" isLoading={isSubmitting} className="flex-1">
           {task ? 'Save Changes' : 'Create Task'}
         </Button>

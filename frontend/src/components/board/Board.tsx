@@ -18,6 +18,8 @@ import { BoardSkeleton } from '@/components/ui/Skeleton'
 import { useToast } from '@/components/ui/Toast'
 import { useTasks } from '@/hooks/useTasks'
 import { useTeamMembers } from '@/hooks/useTeamMembers'
+import { useLabels } from '@/hooks/useLabels'
+import { useBoardStats } from '@/hooks/useBoardStats'
 import type { Task, TaskStatus, TaskFilters, CreateTaskInput, UpdateTaskInput, ReorderTaskInput } from '@/types'
 
 const STATUSES: TaskStatus[] = ['todo', 'in_progress', 'in_review', 'done']
@@ -31,9 +33,10 @@ export function Board({ filters }: BoardProps) {
     useTasks(filters)
   const { showError, showSuccess } = useToast()
   const { lastDeletedMemberId } = useTeamMembers()
+  const { lastDeletedLabelId } = useLabels()
+  const { refetch: refetchStats } = useBoardStats()
 
-  // When a team member is deleted, clear their assignee data from local task state
-  // without refetching — keeps the board in sync immediately.
+  // When a team member is deleted, clear their assignee data from local task state.
   React.useEffect(() => {
     if (!lastDeletedMemberId) return
     setTasks((prev) =>
@@ -44,6 +47,22 @@ export function Board({ filters }: BoardProps) {
       ),
     )
   }, [lastDeletedMemberId, setTasks])
+
+  // When a label is deleted, strip it from every task's label arrays.
+  React.useEffect(() => {
+    if (!lastDeletedLabelId) return
+    setTasks((prev) =>
+      prev.map((t) =>
+        t.label_ids.includes(lastDeletedLabelId)
+          ? {
+              ...t,
+              label_ids: t.label_ids.filter((id) => id !== lastDeletedLabelId),
+              labels: t.labels?.filter((l) => l.id !== lastDeletedLabelId),
+            }
+          : t,
+      ),
+    )
+  }, [lastDeletedLabelId, setTasks])
 
   const [activeTask, setActiveTask] = useState<Task | null>(null)
   const [selectedTask, setSelectedTask] = useState<Task | null>(null)
@@ -122,6 +141,7 @@ export function Board({ filters }: BoardProps) {
 
       try {
         await reorderTasks(updates)
+        if (newStatus !== draggedTask.status) refetchStats()
       } catch (err) {
         showError(err instanceof Error ? err.message : 'Failed to move task')
       }
@@ -136,28 +156,31 @@ export function Board({ filters }: BoardProps) {
         await createTask({ ...(data as CreateTaskInput), status: createStatus })
         showSuccess('Task created')
         setCreateStatus(null)
+        refetchStats()
       } catch (err) {
         showError(err instanceof Error ? err.message : 'Failed to create task')
       }
     },
-    [createStatus, createTask, showSuccess, showError],
+    [createStatus, createTask, showSuccess, showError, refetchStats],
   )
 
   const handleUpdateTask = useCallback(
     async (id: string, data: UpdateTaskInput): Promise<Task> => {
       const updated = await updateTask(id, data)
       setSelectedTask((prev) => (prev?.id === id ? updated : prev))
+      refetchStats()
       return updated
     },
-    [updateTask],
+    [updateTask, refetchStats],
   )
 
   const handleDeleteTask = useCallback(
     async (id: string): Promise<void> => {
       await deleteTask(id)
       setSelectedTask(null)
+      refetchStats()
     },
-    [deleteTask],
+    [deleteTask, refetchStats],
   )
 
   if (isLoading) return <BoardSkeleton />

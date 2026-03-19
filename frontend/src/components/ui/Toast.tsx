@@ -105,15 +105,15 @@ function ToastItem({ toast, onDismiss }: ToastItemProps) {
       className={cn(
         'pointer-events-auto flex items-start gap-3 px-4 py-3 rounded-lg border',
         'shadow-xl shadow-black/40 min-w-[280px] max-w-[400px]',
-        'bg-[#18181B]',
+        'bg-[var(--color-bg-card)]',
         config.classes,
       )}
     >
       <Icon size={16} className={cn('mt-0.5 flex-shrink-0', config.iconClass)} />
-      <p className="text-sm text-[#FAFAFA] flex-1">{toast.message}</p>
+      <p className="text-sm text-[var(--color-text-primary)] flex-1">{toast.message}</p>
       <button
         onClick={() => onDismiss(toast.id)}
-        className="flex-shrink-0 text-[#71717A] hover:text-[#FAFAFA] transition-colors"
+        className="flex-shrink-0 text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] transition-colors"
       >
         <X size={14} />
       </button>

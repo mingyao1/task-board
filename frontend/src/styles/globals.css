@@ -35,6 +35,17 @@
     -moz-osx-font-smoothing: grayscale;
   }
 
+  html.light {
+    --color-bg-base: #F8F8F9;
+    --color-bg-card: #FFFFFF;
+    --color-bg-elevated: #F1F1F4;
+    --color-border-subtle: #E4E4E7;
+    --color-border-hover: #D4D4D8;
+    --color-text-primary: #09090B;
+    --color-text-secondary: #52525B;
+    --color-text-muted: #A1A1AA;
+  }
+
   body {
     background-color: var(--color-bg-base);
     color: var(--color-text-primary);

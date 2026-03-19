@@ -14,9 +14,9 @@ const variantClasses: Record<ButtonVariant, string> = {
   primary:
     'bg-[#6366F1] text-white hover:bg-[#4F46E5] border border-transparent',
   secondary:
-    'bg-[#18181B] text-[#FAFAFA] hover:bg-[#27272A] border border-[#27272A] hover:border-[#3F3F46]',
+    'bg-[var(--color-bg-card)] text-[var(--color-text-primary)] hover:bg-[var(--color-border-subtle)] border border-[var(--color-border-subtle)] hover:border-[var(--color-border-hover)]',
   ghost:
-    'bg-transparent text-[#A1A1AA] hover:text-[#FAFAFA] hover:bg-[#27272A] border border-transparent',
+    'bg-transparent text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-border-subtle)] border border-transparent',
   danger:
     'bg-[#EF4444]/10 text-[#EF4444] hover:bg-[#EF4444]/20 border border-[#EF4444]/20',
 }
@@ -42,7 +42,7 @@ export function Button({
       className={cn(
         'inline-flex items-center justify-center gap-2 rounded-md font-medium',
         'transition-colors duration-150',
-        'focus:outline-none focus-visible:ring-2 focus-visible:ring-[#6366F1] focus-visible:ring-offset-2 focus-visible:ring-offset-[#0F0F10]',
+        'focus:outline-none focus-visible:ring-2 focus-visible:ring-[#6366F1] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--color-bg-base)]',
         'disabled:opacity-50 disabled:cursor-not-allowed',
         variantClasses[variant],
         sizeClasses[size],

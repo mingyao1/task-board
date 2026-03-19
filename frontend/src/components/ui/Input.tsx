@@ -15,22 +15,22 @@ export function Input({ label, error, leftIcon, className, id, ...props }: Input
       {label && (
         <label
           htmlFor={inputId}
-          className="text-[13px] font-medium text-[#A1A1AA]"
+          className="text-[13px] font-medium text-[var(--color-text-secondary)]"
         >
           {label}
         </label>
       )}
       <div className="relative">
         {leftIcon && (
-          <div className="absolute left-3 top-1/2 -translate-y-1/2 text-[#71717A]">
+          <div className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--color-text-muted)]">
             {leftIcon}
           </div>
         )}
         <input
           id={inputId}
           className={cn(
-            'w-full rounded-md bg-[#18181B] border border-[#27272A]',
-            'px-3 py-2 text-sm text-[#FAFAFA] placeholder:text-[#71717A]',
+            'w-full rounded-md bg-[var(--color-bg-card)] border border-[var(--color-border-subtle)]',
+            'px-3 py-2 text-sm text-[var(--color-text-primary)] placeholder:text-[var(--color-text-muted)]',
             'transition-colors duration-150',
             'focus:outline-none focus:ring-2 focus:ring-[#6366F1]/50 focus:border-[#6366F1]',
             'disabled:opacity-50 disabled:cursor-not-allowed',
@@ -59,7 +59,7 @@ export function Textarea({ label, error, className, id, ...props }: TextareaProp
       {label && (
         <label
           htmlFor={inputId}
-          className="text-[13px] font-medium text-[#A1A1AA]"
+          className="text-[13px] font-medium text-[var(--color-text-secondary)]"
         >
           {label}
         </label>
@@ -67,8 +67,8 @@ export function Textarea({ label, error, className, id, ...props }: TextareaProp
       <textarea
         id={inputId}
         className={cn(
-          'w-full rounded-md bg-[#18181B] border border-[#27272A]',
-          'px-3 py-2 text-sm text-[#FAFAFA] placeholder:text-[#71717A]',
+          'w-full rounded-md bg-[var(--color-bg-card)] border border-[var(--color-border-subtle)]',
+          'px-3 py-2 text-sm text-[var(--color-text-primary)] placeholder:text-[var(--color-text-muted)]',
           'transition-colors duration-150 resize-none',
           'focus:outline-none focus:ring-2 focus:ring-[#6366F1]/50 focus:border-[#6366F1]',
           'disabled:opacity-50 disabled:cursor-not-allowed',

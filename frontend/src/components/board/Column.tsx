@@ -89,12 +89,12 @@ export function Column({ status, tasks, onTaskClick, onAddTask }: ColumnProps) {
             <div
               className={cn(
                 'flex-1 flex items-center justify-center rounded-lg min-h-[80px]',
-                'border border-dashed border-[#27272A]',
+                'border border-dashed border-[var(--color-border-subtle)]',
                 isOver && 'border-[#6366F1]/40',
                 'transition-colors duration-150',
               )}
             >
-              <p className="text-xs text-[#71717A]">
+              <p className="text-xs text-[var(--color-text-muted)]">
                 {isOver ? 'Drop here' : 'No tasks'}
               </p>
             </div>

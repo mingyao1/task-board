@@ -24,7 +24,7 @@ export function AvatarBadge({ name, color, size = 'md', className, title }: Avat
       title={title ?? name}
       className={cn(
         'rounded-full flex items-center justify-center font-semibold flex-shrink-0',
-        'ring-2 ring-[#0F0F10]',
+        'ring-2 ring-[var(--color-bg-base)]',
         sizeClasses[size],
         className,
       )}

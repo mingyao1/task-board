@@ -17,10 +17,10 @@ export function NewTaskButton({ onClick, className }: NewTaskButtonProps) {
       onMouseLeave={() => setIsHovered(false)}
       className={cn(
         'flex items-center gap-2 w-full px-3 py-2 rounded-lg text-[13px]',
-        'border border-dashed border-[#27272A] hover:border-[#3F3F46]',
-        'text-[#71717A] hover:text-[#A1A1AA]',
+        'border border-dashed border-[var(--color-border-subtle)] hover:border-[var(--color-border-hover)]',
+        'text-[var(--color-text-muted)] hover:text-[var(--color-text-secondary)]',
         'transition-all duration-150',
-        'hover:bg-[#27272A]/30',
+        'hover:bg-[var(--color-border-subtle)]/30',
         className,
       )}
     >
